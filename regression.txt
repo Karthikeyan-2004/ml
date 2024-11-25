@@ -1,0 +1,149 @@
+#LinearRegression
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
+weeks = [1, 2, 3, 4,5]
+sales = [1.2, 1.8, 2.6, 3.2,3.8]
+plt.figure(figsize=(10, 6))
+plt.scatter(weeks, sales, color='red', marker='o')
+X = np.array(weeks).reshape(-1, 1)
+y = np.array(sales)
+reg = LinearRegression().fit(X, y)
+intercept = reg.intercept_
+slope = reg.coef_[0]
+line_x = np.array([0, 5])
+line_y = intercept + slope * line_x
+plt.plot(line_x, line_y, color='blue')
+plt.title('Sales Regression Analysis')
+plt.xlabel('Week')
+plt.ylabel('Sales')
+plt.xlim(0, 5)
+plt.ylim(0, 5)
+plt.text(0.1, 0.2, f'Intercept: {intercept:.2f}', transform=plt.gca().transAxes)
+plt.text(0.1, 0.1, f'y = {intercept:.2f} + {slope:.2f}x', transform=plt.gca().transAxes)
+for i, (x, y) in enumerate(zip(weeks, sales)):
+    plt.annotate(f'({x}, {y:.1f})', (x, y), xytext=(5, 5), textcoords='offset points')
+month_7 = intercept + slope * 7
+month_9 = intercept + slope * 9
+print(f"7th month sales: y = {intercept:.2f} + ({slope:.2f} * 7) = {month_7:.2f}")
+print(f"9th month sales: y = {intercept:.2f} + ({slope:.2f} * 9) = {month_9:.2f}")
+plt.show()
+print(f"\nRegression Equation: y = {intercept:.2f} + {slope:.2f}x")
+print(f"Intercept: {intercept:.2f}")
+print(f"Slope: {slope:.2f}")
+
+
+#MULTIPLE-LINEAR_REGRESSION
+
+import numpy as np
+from sklearn.linear_model import LinearRegression
+X = np.array([
+    [1, 4],
+    [2, 5],
+    [3, 8],
+    [4, 2]
+])
+y = np.array([1, 6, 8, 12])
+model = LinearRegression()
+model.fit(X, y)
+a0 = model.intercept_
+a1, a2 = model.coef_
+print(f"The multiple linear regression equation is,")
+print(f"y = {a0:.2f} + {a1:.3f} X1 - {abs(a2):.3f} X2")
+x1_5 = 5  # 5th week data for Product 1
+x2_5 = 6  # 5th week data for Product 2
+y_pred = a0 + (a1 * x1_5) + (a2 * x2_5)
+print(f"\nThe 5th week sales is predicted as,")
+print(f"y = {a0:.2f} + ({a1:.3f} * 5) - ({abs(a2):.3f} * 6)")
+print(f"y = {y_pred:.3f} Lakhs")
+
+
+#LOGISTIC REGRESSION
+
+import numpy as np
+import matplotlib.pyplot as plt
+def logistic_function(x, a0, a1):
+    z = a0 + a1 * x
+    return 1 / (1 + np.exp(-z))
+a0 = 1
+a1 = 8
+threshold = 0.5
+x = 60
+p = a0 + a1 * x
+y = logistic_function(x, a0, a1)
+selected = y > threshold
+print(f"The equation for Logistic regression is:")
+print(f"y = 1 / (1 + e^(-x))")
+print(f"\nThe probability for x is:")
+print(f"p(x) = z = a0 + a1*x")
+print(f"\nGiven a0 = {a0}, a1 = {a1}, x = {x} marks, threshold > {threshold}")
+print(f"\np(x) = z = {a0} + {a1} * {x} = {p}")
+print(f"\nThe logistic regression equation is:")
+print(f"y = 1 / (1 + e^(-{p:.2f})) = {y:.10f}")
+print(f"\nSince {y:.10f} > {threshold}, the student with marks = {x}, is {'selected' if selected else 'not selected'}")
+x_range = np.linspace(0, 100, 1000)
+y_range = logistic_function(x_range, a0, a1)
+plt.figure(figsize=(10, 6))
+plt.plot(x_range, y_range, label='Logistic Curve')
+plt.axhline(y=threshold, color='r', linestyle='--', label='Threshold')
+plt.axvline(x=x, color='g', linestyle='--', label='Student Score')
+plt.scatter(x, y, color='b', s=100, zorder=5, label='Student')
+plt.xlabel('Score')
+plt.ylabel('Probability of Selection')
+plt.title('Logistic Regression for Student Selection')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+
+#POLYNOMIAL REGRESSION
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+X = np.array([1, 2, 3, 4]).reshape(-1, 1)
+y = np.array([1, 4, 9, 15])
+def polynomial_regression(X, y, degree=2):
+    poly_features = PolynomialFeatures(degree=degree, include_bias=False)
+    X_poly = poly_features.fit_transform(X)
+    model = LinearRegression()
+    model.fit(X_poly, y)
+    return model, poly_features
+def plot_polynomial_regression(X, y, model, poly_features):
+    X_plot = np.linspace(X.min(), X.max(), 100).reshape(-1, 1)
+    X_plot_poly = poly_features.transform(X_plot)
+    y_plot = model.predict(X_plot_poly)
+    plt.figure(figsize=(10, 6))
+    plt.scatter(X, y, color='blue', label='Data points')
+    plt.plot(X_plot, y_plot, color='red', label='Polynomial regression')
+    plt.xlabel('X')
+    plt.ylabel('y')
+    plt.title(f'Polynomial Regression (Degree {poly_features.degree})')
+    coef = model.coef_.flatten()  # Flatten the coefficient array
+    eq = f'y = {model.intercept_:.2f}'
+    for i, c in enumerate(coef):
+        if i == 0:
+            eq += f' + {c:.2f}x'
+        else:
+            eq += f' + {c:.2f}x^{i+1}'
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+model, poly_features = polynomial_regression(X, y)
+plot_polynomial_regression(X, y, model, poly_features)
+print("Coefficients:", model.coef_)
+print("Intercept:", model.intercept_)
+coef = model.coef_.flatten()  # Flatten the coefficient array
+eq = f'y = {model.intercept_:.2f}'
+for i, c in enumerate(coef):
+    if i == 0:
+        eq += f' + {c:.2f}x'
+    else:
+        eq += f' + {c:.2f}x^{i+1}'
+print("\nPolynomial Regression Equation:")
+print(eq)
+

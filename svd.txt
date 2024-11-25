@@ -1,0 +1,20 @@
+#svd
+
+import numpy as np
+A=np.array([[3,0],[4,5]])
+U,sigma,VT=np.linalg.svd(A)
+sigma_matrix = np.diag(sigma)
+print("Matrix A in SVD form: ")
+print("U Matrix: ")
+print(U)
+print("\n Sigma Matrix: ")
+print(sigma_matrix)
+print("\nVT Matrix: ")
+print(VT)
+print("\n A=[U][sigma_matric][VT] form:")
+print("\n[U]")
+print(U)
+print("\n[sigma]")
+print(sigma_matrix)
+print("\n[VT]")
+print(VT)

@@ -1,0 +1,17 @@
+import numpy as np
+from sklearn.cluster import KMeans
+
+data = np.array([[2,4], [2,6], [5,6], [4,7], [8,3], [6,6],[5,7], [6,3], [4,4]])
+
+kmeans = KMeans(n_clusters=3,  random_state=0).fit(data)
+
+labels = kmeans.labels_
+centers = kmeans.cluster_centers_
+
+cluster_1 = data[labels == 0]
+cluster_2 = data[labels == 1]
+cluster_3 = data[labels == 2]
+print(f"C1 : {cluster_1.tolist()}")
+print(f"C2 : {cluster_2.tolist()}")
+print(f"C3 : {cluster_3.tolist()}")
+print(f"Cluster centers : {centers}")

@@ -1,0 +1,79 @@
+from itertools import combinations
+def calculate_support(transactions, itemset):
+    count = 0
+    for transaction in transactions:
+        if itemset.issubset(transaction):
+            count += 1
+    return count / len(transactions)
+def generate_candidates(prev_freq_itemsets, k):
+    candidates = set()
+    prev_freq_itemsets_list = list(prev_freq_itemsets)
+    for i in range(len(prev_freq_itemsets_list)):
+        for j in range(i + 1, len(prev_freq_itemsets_list)):
+            union_set = prev_freq_itemsets_list[i].union(prev_freq_itemsets_list[j])
+            if len(union_set) == k:
+                candidates.add(union_set)
+    return candidates
+def prune_candidates(candidates, prev_freq_itemsets):
+    pruned_candidates = set()
+    for candidate in candidates:
+        all_subsets_frequent = True
+        for subset in combinations(candidate, len(candidate) - 1):
+            if frozenset(subset) not in prev_freq_itemsets:
+                all_subsets_frequent = False
+                break
+        if all_subsets_frequent:
+            pruned_candidates.add(candidate)
+    return pruned_candidates
+def apriori(transactions, min_support):
+    itemsets = set()
+    for transaction in transactions:
+        for item in transaction:
+            itemsets.add(frozenset([item]))
+    freq_itemsets = {itemset for itemset in itemsets if calculate_support(transactions, itemset) >= min_support}
+    all_freq_itemsets = dict()
+    all_freq_itemsets[1] = freq_itemsets
+    k = 2
+    while len(all_freq_itemsets[k - 1]) > 0:
+        candidates = generate_candidates(all_freq_itemsets[k - 1], k)
+        candidates = prune_candidates(candidates, all_freq_itemsets[k - 1])
+        freq_itemsets_k = {candidate for candidate in candidates if calculate_support(transactions, candidate) >= min_support}
+        all_freq_itemsets[k] = freq_itemsets_k
+        k += 1
+    return all_freq_itemsets
+def generate_association_rules(freq_itemsets, transactions, min_confidence):
+    rules = []
+    for k, itemsets in freq_itemsets.items():
+        if k >= 2:
+            for itemset in itemsets:
+                for i in range(1, len(itemset)):
+                    for subset in combinations(itemset, i):
+                        antecedent = frozenset(subset)
+                        consequent = itemset - antecedent
+                        antecedent_support = calculate_support(transactions, antecedent)
+                        rule_support = calculate_support(transactions, itemset)
+                        confidence = rule_support / antecedent_support  # Fix confidence calculation
+                        if confidence >= min_confidence:
+                            rules.append((antecedent, consequent, rule_support, confidence))
+    return rules
+transactions = [
+    frozenset(['butter', 'bread', 'milk']),
+    frozenset(['bread', 'butter']),
+    frozenset(['beer', 'cookies', 'diapers']),
+    frozenset(['milk', 'diapers', 'bread', 'butter']),
+    frozenset(['beer', 'diapers'])
+]
+min_support = 0.2
+min_confidence = 0.9
+freq_itemsets = apriori(transactions, min_support)
+rules = generate_association_rules(freq_itemsets, transactions, min_confidence)
+print("Frequent Itemsets:")
+for k, itemsets in freq_itemsets.items():
+    if itemsets:
+        print(f"Frequent {k}-itemsets:")
+        for itemset in itemsets:
+            print(f"{set(itemset)}")
+print("\nStrong Association Rules:")
+for rule in rules:
+    antecedent, consequent, support, confidence = rule
+    print(f"{set(antecedent)} -> {set(consequent)} (Support: {support:.2f}, Confidence: {confidence:.2f})")

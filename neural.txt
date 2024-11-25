@@ -1,0 +1,59 @@
+import numpy as np
+
+class NeuronNetwork:
+    def __init__(self):
+        self.weights = np.array([0.1, 0.3, -0.2])  
+        self.inputs = np.array([0.8, 0.6, 0.4])    
+        self.bias = 0.35                           
+
+    def binary_sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
+
+    def bipolar_sigmoid(self, x):
+        return (1 - np.exp(-x)) / (1 + np.exp(-x))
+
+    def identity(self, x):
+        return x
+
+    def threshold(self, x):
+        return 1 if x >= 0 else 0
+
+    def relu(self, x):
+        return max(0, x)
+
+    def hyperbolic_tangent(self, x):
+        return np.tanh(x)
+
+    def calculate_net_input(self):
+        return self.bias + np.sum(self.inputs * self.weights)
+
+    def compute_outputs(self):
+        net_input = self.calculate_net_input()
+
+        binary_output = self.binary_sigmoid(net_input)
+        bipolar_output = self.bipolar_sigmoid(net_input)
+        identity_output = self.identity(net_input)
+        threshold_output = self.threshold(net_input)
+        relu_output = self.relu(net_input)
+        hyperbolic_tangent_output = self.hyperbolic_tangent(net_input)
+
+        return {
+            'net_input': net_input,
+            'binary_sigmoid': binary_output,
+            'bipolar_sigmoid': bipolar_output,
+            'identity': identity_output,
+            'threshold': threshold_output,
+            'relu': relu_output,
+            'hyperbolic_tangent': hyperbolic_tangent_output
+        }
+
+network = NeuronNetwork()
+results = network.compute_outputs()
+
+print(f"Net input (y_in): {results['net_input']:.3f}")
+print(f"Binary sigmoid output: {results['binary_sigmoid']:.3f}")
+print(f"Bipolar sigmoid output: {results['bipolar_sigmoid']:.3f}")
+print(f"Identity output: {results['identity']:.3f}")
+print(f"Threshold output: {results['threshold']}")
+print(f"ReLU output: {results['relu']:.3f}")
+print(f"Hyperbolic tangent output: {results['hyperbolic_tangent']:.3f}")

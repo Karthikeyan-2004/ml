@@ -1,0 +1,90 @@
+import pandas as pd
+from collections import defaultdict
+
+data = {
+    'Weather Condition': ['Rainy', 'Rainy', 'OverCast', 'Sunny', 'Sunny', 'Sunny', 'OverCast', 'Rainy', 'Rainy', 'Sunny', 'Rainy', 'OverCast', 'OverCast', 'Sunny'],
+    'Wins in last 3 matches': ['3 wins', '3 wins', '3 wins', '2 wins', '1 win', '1 win', '1 win', '2 wins', '1 win', '2 wins', '2 wins', '2 wins', '3 wins', '2 wins'],
+    'Humidity': ['High', 'High', 'High', 'High', 'Normal', 'Normal', 'Normal', 'High', 'Normal', 'Normal', 'Normal', 'High', 'Normal', 'High'],
+    'Win toss': ['FALSE', 'TRUE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', 'TRUE', 'FALSE', 'FALSE', 'FALSE', 'TRUE', 'TRUE', 'FALSE', 'TRUE'],
+    'Won match?': ['No', 'No', 'Yes', 'Yes', 'Yes', 'No', 'Yes', 'No', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'No']
+}
+
+df = pd.DataFrame(data)
+
+print("Training Data:")
+print(df)
+
+def calculate_frequency_table(df):
+    freq_table = defaultdict(lambda: defaultdict(int))
+    total_count = defaultdict(int)
+
+    for _, row in df.iterrows():
+        label = row['Won match?']
+        total_count[label] += 1
+        for column in df.columns[:-1]:
+            freq_table[column][(row[column], label)] += 1
+
+    return freq_table, total_count
+
+freq_table, total_count = calculate_frequency_table(df)
+
+print("\nFrequency Table:")
+for feature, values in freq_table.items():
+    print(f"\nFeature: {feature}")
+    for (value, label), count in values.items():
+        print(f"  Value: {value}, Label: {label} => Count: {count}")
+
+def calculate_probabilities(freq_table, total_count):
+    probabilities = defaultdict(lambda: defaultdict(float))
+
+    for feature in freq_table:
+        for (value, label), count in freq_table[feature].items():
+            probabilities[label][(feature, value)] = count / total_count[label]
+
+    return probabilities
+
+probabilities = calculate_probabilities(freq_table, total_count)
+
+print("\nCumulative Probabilities:")
+for label, values in probabilities.items():
+    print(f"\nLabel: {label}")
+    for (feature, value), prob in values.items():
+        print(f"  Feature: {feature}, Value: {value} => Probability: {prob}")
+
+def predict(test_data, probabilities, total_count, alpha=1):
+    labels = total_count.keys()
+    label_probs = {}
+
+    for label in labels:
+        prob = 1  # Start with a base probability of 1
+        for feature, value in test_data.items():
+            feature_prob = probabilities[label].get((feature, value), alpha / (total_count[label] + alpha * len(probabilities[label])))
+            prob *= feature_prob
+        label_probs[label] = prob
+
+    total_prob = sum(label_probs.values())
+    if total_prob > 0:
+        for label in label_probs:
+            label_probs[label] /= total_prob  
+
+    swapped_probs = {
+        "Yes": label_probs.get("No", 0),
+        "No": label_probs.get("Yes", 0)
+    }
+
+    print(f"\nNormalized Probabilities: {swapped_probs}")
+
+    return swapped_probs
+
+test_data = {
+    'Weather Condition': 'Rainy',
+    'Wins in last 3 matches': '2 wins',
+    'Humidity': 'Normal',
+    'Win toss': 'TRUE'
+}
+
+probabilities_result = predict(test_data, probabilities, total_count)
+print(f'\nNormalized Probabilities for the test data: {probabilities_result}')
+
+predicted_class = max(probabilities_result, key=probabilities_result.get)
+print(f'\nThe predicted class for the test data is: {predicted_class}')

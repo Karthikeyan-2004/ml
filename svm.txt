@@ -1,0 +1,63 @@
+import numpy as np
+from sklearn import svm
+import matplotlib.pyplot as plt
+
+X = np.array([[4, 1], [4, -1], [6, 0], [1, 0], [0, 1], [0, -1]])
+y = np.array([1, 1, 1, -1, -1, -1])  
+
+clf = svm.SVC(kernel='linear', C=1000)
+
+def plot_graph(ax, X, y, title, draw_hyperplane=False):
+    ax.axhline(y=0, color='k', linestyle='-', linewidth=0.5)
+    ax.axvline(x=0, color='k', linestyle='-', linewidth=0.5)
+
+    ax.scatter(X[y==1, 0], X[y==1, 1], c='red', s=50, label='Positive Class')
+    ax.scatter(X[y==-1, 0], X[y==-1, 1], c='blue', s=50, label='Negative Class')
+
+    for i, (x, y_coord) in enumerate(X):
+        ax.annotate(f'({x},{y_coord})', (x, y_coord), xytext=(5, 5), textcoords='offset points')
+
+    if draw_hyperplane:
+        w = clf.coef_[0]
+        b = clf.intercept_[0]
+        x_points = np.array([-1, 7])
+        y_points = -(w[0] * x_points + b) / w[1]
+
+        ax.plot(x_points, y_points, 'g-', label='Hyperplane')
+
+    ax.set_xlim(-3, 7)
+    ax.set_ylim(-3, 4)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_title(title)
+    ax.legend()
+    ax.grid(True)
+
+    for i in range(-3, 8):
+        ax.text(i, -0.2, str(i), ha='center', va='center')
+        if i != 0:
+            ax.text(-0.2, i, str(i), ha='center', va='center')
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 8))
+
+plot_graph(ax1, X, y, "Before applying SVM")
+
+clf.fit(X, y)
+
+plot_graph(ax2, X, y, "After applying SVM", draw_hyperplane=True)
+
+plt.tight_layout()
+plt.show()
+
+w = clf.coef_[0]
+b = clf.intercept_[0]
+print(f"Hyperplane equation: {w[0]:.2f}x + {w[1]:.2f}y + {b:.2f} = 0")
+
+print("Support vectors:")
+print(clf.support_vectors_)
+
+# Predict the class of the test point (5, 1)
+test_point = np.array([[5, 1]])
+predicted_class = clf.predict(test_point)
+class_label = 'Positive' if predicted_class == 1 else 'Negative'
+print(f"The test point (5, 1) is predicted to be in the {class_label} class.")
